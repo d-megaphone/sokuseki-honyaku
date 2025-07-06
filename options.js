@@ -13,9 +13,10 @@ document.addEventListener('DOMContentLoaded', () => {
         explain: 'gemini-2.5-flash'
     };
 
+    const DEFAULT_SHORTCUT = 'MacCtrl+A';
+
     // --- DOM要素 ---
     const apiKeyInput = document.getElementById('apiKey');
-    const modelSelect = document.getElementById('model');
     const translateTextarea = document.getElementById('prompt-translate');
     const summarizeTextarea = document.getElementById('prompt-summarize');
     const explainTextarea = document.getElementById('prompt-explain');
@@ -29,6 +30,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const translateModelSelect = document.getElementById('model-translate');
     const summarizeModelSelect = document.getElementById('model-summarize');
     const explainModelSelect = document.getElementById('model-explain');
+
+    // ショートカットキー設定要素
+    const shortcutInput = document.getElementById('shortcut-key');
+    const resetShortcutBtn = document.getElementById('reset-shortcut');
+    const currentShortcutSpan = document.getElementById('current-shortcut');
 
     // --- 関数 ---
 
@@ -46,7 +52,7 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
             const items = await chrome.storage.local.get({
                 apiKey: '',
-                model: 'gemini-2.5-flash',
+                shortcutKey: DEFAULT_SHORTCUT,
                 tabModels: DEFAULT_MODELS,
                 translate: DEFAULT_PROMPTS.translate,
                 summarize: DEFAULT_PROMPTS.summarize,
@@ -55,7 +61,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
             // 取得した値でフォームを埋める
             apiKeyInput.value = items.apiKey;
-            modelSelect.value = items.model || 'gemini-2.5-flash';
             translateTextarea.value = items.translate || DEFAULT_PROMPTS.translate;
             summarizeTextarea.value = items.summarize || DEFAULT_PROMPTS.summarize;
             explainTextarea.value = items.explain || DEFAULT_PROMPTS.explain;
@@ -65,6 +70,11 @@ document.addEventListener('DOMContentLoaded', () => {
             translateModelSelect.value = tabModels.translate || DEFAULT_MODELS.translate;
             summarizeModelSelect.value = tabModels.summarize || DEFAULT_MODELS.summarize;
             explainModelSelect.value = tabModels.explain || DEFAULT_MODELS.explain;
+
+            // ショートカットキー設定を読み込み
+            const shortcutKey = items.shortcutKey || DEFAULT_SHORTCUT;
+            shortcutInput.value = shortcutKey;
+            currentShortcutSpan.textContent = shortcutKey;
 
         } catch (error) {
             console.error('設定の読み込み中にエラーが発生しました:', error);
@@ -76,7 +86,7 @@ document.addEventListener('DOMContentLoaded', () => {
     async function saveOptions() {
         const settings = {
             apiKey: apiKeyInput.value,
-            model: modelSelect.value,
+            shortcutKey: shortcutInput.value,
             tabModels: {
                 translate: translateModelSelect.value,
                 summarize: summarizeModelSelect.value,
@@ -96,6 +106,55 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    // ショートカットキー入力の処理
+    let isRecordingShortcut = false;
+    let recordedKeys = [];
+
+    function formatShortcut(keys) {
+        return keys.map(key => {
+            if (key === 'Control') return 'Ctrl';
+            if (key === 'Meta') return 'Mac';
+            if (key === 'Alt') return 'Alt';
+            if (key === 'Shift') return 'Shift';
+            return key;
+        }).join('+');
+    }
+
+    function handleKeyDown(e) {
+        if (!isRecordingShortcut) return;
+        
+        e.preventDefault();
+        e.stopPropagation();
+        
+        const key = e.key;
+        const modifiers = [];
+        
+        if (e.ctrlKey) modifiers.push('Control');
+        if (e.metaKey) modifiers.push('Meta');
+        if (e.altKey) modifiers.push('Alt');
+        if (e.shiftKey) modifiers.push('Shift');
+        
+        // 修飾キー以外のキーが押された場合
+        if (!['Control', 'Meta', 'Alt', 'Shift'].includes(key)) {
+            recordedKeys = [...modifiers, key];
+            shortcutInput.value = formatShortcut(recordedKeys);
+            currentShortcutSpan.textContent = formatShortcut(recordedKeys);
+            isRecordingShortcut = false;
+            shortcutInput.classList.remove('recording');
+            shortcutInput.blur();
+        }
+    }
+
+    function handleKeyUp(e) {
+        if (!isRecordingShortcut) return;
+        
+        // 修飾キーのみの場合は記録しない
+        if (['Control', 'Meta', 'Alt', 'Shift'].includes(e.key)) {
+            recordedKeys = [];
+            shortcutInput.value = '';
+        }
+    }
+
     // --- 初期化処理 ---
     saveButton.addEventListener('click', saveOptions);
     
@@ -110,6 +169,24 @@ document.addEventListener('DOMContentLoaded', () => {
     resetExplainBtn.addEventListener('click', () => {
         explainTextarea.value = DEFAULT_PROMPTS.explain;
     });
+
+    // ショートカットキー設定のイベントリスナー
+    shortcutInput.addEventListener('click', () => {
+        isRecordingShortcut = true;
+        recordedKeys = [];
+        shortcutInput.classList.add('recording');
+        shortcutInput.value = 'キーを押してください...';
+        shortcutInput.focus();
+    });
+
+    resetShortcutBtn.addEventListener('click', () => {
+        shortcutInput.value = DEFAULT_SHORTCUT;
+        currentShortcutSpan.textContent = DEFAULT_SHORTCUT;
+    });
+
+    // キーボードイベントリスナー
+    document.addEventListener('keydown', handleKeyDown);
+    document.addEventListener('keyup', handleKeyUp);
 
     restoreOptions();
 }); 

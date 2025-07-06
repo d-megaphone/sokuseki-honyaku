@@ -28,6 +28,10 @@
         .tab-model-item { margin-bottom: 15px; }
         .tab-model-item:last-child { margin-bottom: 0; }
         .tab-model-label { font-weight: 600; color: #495057; margin-bottom: 8px; }
+        .shortcut-input-container { display: flex; gap: 10px; align-items: center; }
+        .shortcut-input { flex: 1; background-color: #f8f9fa; cursor: pointer; }
+        .shortcut-input:focus { background-color: #fff; border-color: #007bff; }
+        .shortcut-input.recording { background-color: #fff3cd; border-color: #ffc107; }
     </style>
 </head>
 <body>
@@ -49,15 +53,24 @@
             </small>
         </div>
         
+
+
+        <h2>ショートカットキー設定</h2>
         <div class="form-group">
-            <label for="model">デフォルト使用モデル</label>
-            <select id="model" class="form-control">
-                <option value="gemini-2.5-flash">Gemini 2.5 Flash（推奨・バランス型）</option>
-                <option value="gemini-2.5-pro">Gemini 2.5 Pro（最高精度）</option>
-                <option value="gemini-2.5-flash-lite-preview">Gemini 2.5 Flash-Lite（無料枠最大）</option>
-                <option value="gemini-2.0-flash">Gemini 2.0 Flash（長文対応）</option>
-                <option value="gemini-1.5-flash">Gemini 1.5 Flash（従来モデル）</option>
-            </select>
+            <label for="shortcut-key">フローティングウィンドウの表示切り替え</label>
+            <div class="shortcut-input-container">
+                <input 
+                    type="text" 
+                    id="shortcut-key" 
+                    class="form-control shortcut-input" 
+                    placeholder="キーを押してください"
+                    readonly
+                >
+                <button type="button" id="reset-shortcut" class="reset-btn">デフォルトに戻す</button>
+            </div>
+            <small class="help-text">
+                現在の設定: <span id="current-shortcut">MacCtrl+A</span>
+            </small>
         </div>
 
         <h2>タブごとのモデル設定</h2>

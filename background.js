@@ -89,6 +89,10 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     } else if (message.type === 'openOptionsPage') {
         chrome.runtime.openOptionsPage();
         sendResponse({ success: true });
+    } else if (message.type === 'updateShortcut') {
+        // ショートカットキーの更新（実際の実装は複雑なため、ここでは通知のみ）
+        console.log('ショートカットキーが更新されました:', message.shortcut);
+        sendResponse({ success: true });
     } else if (message.type === 'getCurrentSelectedText') {
         // フロートウィンドウからの現在選択テキスト取得要求（初期化用）
         if (currentActiveTab) {
