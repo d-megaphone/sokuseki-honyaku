@@ -10,6 +10,7 @@ let isDragging = false;
 let dragOffset = { x: 0, y: 0 };
 let statusAnimationInterval = null;
 const apiCache = {}; // API結果のキャッシュ
+let lastActiveTab = 'translate'; // 最後に開いていたタブ
 
 // 選択テキストを取得する関数
 function getSelectedText() {
@@ -86,9 +87,9 @@ function createFloatWindow() {
     floatWindow.innerHTML = `
         <div class="header" id="float-header">
             <div class="tabs">
-                <button class="tab-item active" data-tab="translate">翻訳</button>
-                <button class="tab-item" data-tab="summarize">要約</button>
-                <button class="tab-item" data-tab="explain">解説</button>
+                <button class="tab-item ${lastActiveTab === 'translate' ? 'active' : ''}" data-tab="translate">翻訳</button>
+                <button class="tab-item ${lastActiveTab === 'summarize' ? 'active' : ''}" data-tab="summarize">要約</button>
+                <button class="tab-item ${lastActiveTab === 'explain' ? 'active' : ''}" data-tab="explain">解説</button>
             </div>
             <div class="actions">
                  <span id="status-indicator"></span>
@@ -105,13 +106,13 @@ function createFloatWindow() {
             </div>
         </div>
         <div class="content-area">
-            <div class="tab-content active" id="translate-content">
+            <div class="tab-content ${lastActiveTab === 'translate' ? 'active' : ''}" id="translate-content">
                 <div class="empty-state">テキストを選択すると翻訳が開始されます</div>
             </div>
-            <div class="tab-content" id="summarize-content">
+            <div class="tab-content ${lastActiveTab === 'summarize' ? 'active' : ''}" id="summarize-content">
                  <div class="empty-state"></div>
             </div>
-            <div class="tab-content" id="explain-content">
+            <div class="tab-content ${lastActiveTab === 'explain' ? 'active' : ''}" id="explain-content">
                 <div class="empty-state"></div>
             </div>
         </div>
@@ -139,7 +140,12 @@ function createFloatWindow() {
     floatWindow.style.left = 'auto';
 
     // 初期モデル選択を設定
-    updateModelSelector('translate');
+    updateModelSelector(lastActiveTab);
+
+    // 選択テキストがある場合は即座に処理を開始
+    if (lastSelectedText) {
+        handleApiRequest(lastActiveTab, lastSelectedText);
+    }
 }
 
 // フロートウィンドウのスタイルを取得
@@ -431,6 +437,9 @@ async function switchTab(tabName) {
         content.classList.toggle('active', content.id === `${tabName}-content`);
     });
 
+    // 最後に開いていたタブを保存
+    lastActiveTab = tabName;
+
     // モデル選択を現在のタブに合わせて更新
     await updateModelSelector(tabName);
 
@@ -571,6 +580,12 @@ function setProcessingState(isProcessing, resultType = null) {
 
 function closeFloatWindow() {
     if (floatWindow) {
+        // 現在のタブ状態を保存
+        const activeTab = floatWindow.querySelector('.tab-item.active');
+        if (activeTab) {
+            lastActiveTab = activeTab.dataset.tab;
+        }
+        
         floatWindow.remove();
         floatWindow = null;
         chrome.runtime.sendMessage({ type: 'floatWindowClosed' }).catch(() => {});
