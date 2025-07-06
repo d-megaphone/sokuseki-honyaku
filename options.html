@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>即席翻訳 - 設定</title>
+    <style>
+        body { font-family: sans-serif; padding: 20px; max-width: 600px; margin: auto; }
+        .form-group { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 5px; font-weight: bold; }
+        input[type="text"], input[type="password"], select, textarea {
+            width: 100%;
+            padding: 8px;
+            box-sizing: border-box;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        textarea { min-height: 120px; resize: vertical; }
+        button { padding: 10px 15px; background-color: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer; }
+        button:hover { background-color: #0056b3; }
+        #status { margin-top: 15px; color: green; }
+        h2 { border-bottom: 2px solid #eee; padding-bottom: 10px; }
+        .prompt-desc { font-size: 12px; color: #666; margin-top: 4px;}
+        .label-with-btn { display: flex; justify-content: space-between; align-items: center; }
+        .reset-btn { padding: 3px 8px; font-size: 11px; background-color: #6c757d; cursor: pointer; border: none; border-radius: 4px; color: white; font-weight: normal; }
+        .reset-btn:hover { background-color: #5a6268; }
+        .tab-model-section { background-color: #f8f9fa; padding: 15px; border-radius: 8px; margin-bottom: 20px; }
+        .tab-model-item { margin-bottom: 15px; }
+        .tab-model-item:last-child { margin-bottom: 0; }
+        .tab-model-label { font-weight: 600; color: #495057; margin-bottom: 8px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>即席翻訳 設定</h1>
+        
+        <div class="form-group">
+            <label for="apiKey">Gemini API キー</label>
+            <input 
+                type="password" 
+                id="apiKey" 
+                placeholder="AIzaSy... で始まるAPIキーを入力"
+                class="form-control"
+            >
+            <small class="help-text">
+                <a href="https://makersuite.google.com/app/apikey" target="_blank">
+                    Google AI Studio でAPIキーを取得
+                </a>
+            </small>
+        </div>
+        
+        <div class="form-group">
+            <label for="model">デフォルト使用モデル</label>
+            <select id="model" class="form-control">
+                <option value="gemini-2.5-flash">Gemini 2.5 Flash（推奨・高速）</option>
+                <option value="gemini-2.5-pro">Gemini 2.5 Pro（高精度）</option>
+                <option value="gemini-1.5-flash">Gemini 1.5 Flash（従来モデル）</option>
+                <option value="gemini-1.5-pro">Gemini 1.5 Pro（従来モデル）</option>
+            </select>
+        </div>
+
+        <h2>タブごとのモデル設定</h2>
+        <div class="tab-model-section">
+            <div class="tab-model-item">
+                <div class="tab-model-label">翻訳タブのモデル</div>
+                <select id="model-translate" class="form-control">
+                    <option value="gemini-2.5-flash">Gemini 2.5 Flash（推奨・高速）</option>
+                    <option value="gemini-2.5-pro">Gemini 2.5 Pro（高精度）</option>
+                    <option value="gemini-1.5-flash">Gemini 1.5 Flash（従来モデル）</option>
+                    <option value="gemini-1.5-pro">Gemini 1.5 Pro（従来モデル）</option>
+                </select>
+            </div>
+            
+            <div class="tab-model-item">
+                <div class="tab-model-label">要約タブのモデル</div>
+                <select id="model-summarize" class="form-control">
+                    <option value="gemini-2.5-flash">Gemini 2.5 Flash（推奨・高速）</option>
+                    <option value="gemini-2.5-pro">Gemini 2.5 Pro（高精度）</option>
+                    <option value="gemini-1.5-flash">Gemini 1.5 Flash（従来モデル）</option>
+                    <option value="gemini-1.5-pro">Gemini 1.5 Pro（従来モデル）</option>
+                </select>
+            </div>
+            
+            <div class="tab-model-item">
+                <div class="tab-model-label">解説タブのモデル</div>
+                <select id="model-explain" class="form-control">
+                    <option value="gemini-2.5-flash">Gemini 2.5 Flash（推奨・高速）</option>
+                    <option value="gemini-2.5-pro">Gemini 2.5 Pro（高精度）</option>
+                    <option value="gemini-1.5-flash">Gemini 1.5 Flash（従来モデル）</option>
+                    <option value="gemini-1.5-pro">Gemini 1.5 Pro（従来モデル）</option>
+                </select>
+            </div>
+        </div>
+        
+        <h2>プロンプト設定</h2>
+        
+        <div class="form-group">
+            <label for="prompt-translate" class="label-with-btn">
+                <span>翻訳プロンプト</span>
+                <button type="button" id="reset-translate" class="reset-btn">デフォルトに戻す</button>
+            </label>
+            <textarea id="prompt-translate"></textarea>
+            <p class="prompt-desc"><code>{TEXT}</code> の部分に選択したテキストが挿入されます。</p>
+        </div>
+        
+        <div class="form-group">
+            <label for="prompt-summarize" class="label-with-btn">
+                <span>要約プロンプト</span>
+                <button type="button" id="reset-summarize" class="reset-btn">デフォルトに戻す</button>
+            </label>
+            <textarea id="prompt-summarize"></textarea>
+            <p class="prompt-desc"><code>{TEXT}</code> の部分に選択したテキストが挿入されます。</p>
+        </div>
+
+        <div class="form-group">
+            <label for="prompt-explain" class="label-with-btn">
+                <span>解説プロンプト</span>
+                <button type="button" id="reset-explain" class="reset-btn">デフォルトに戻す</button>
+            </label>
+            <textarea id="prompt-explain"></textarea>
+            <p class="prompt-desc"><code>{TEXT}</code> の部分に選択したテキストが挿入されます。</p>
+        </div>
+        
+        <button id="saveButton" class="btn btn-primary">保存</button>
+        
+        <div id="status" class="status-message"></div>
+    </div>
+    
+    <script src="options.js"></script>
+</body>
+</html> 

@@ -1,0 +1,53 @@
+{
+  "manifest_version": 3,
+  "name": "即席翻訳",
+  "version": "1.0.0",
+  "description": "選択したテキストをGemini APIで翻訳・要約するChrome拡張機能",
+  
+  "permissions": [
+    "activeTab",
+    "storage",
+    "tabs"
+  ],
+  
+  "host_permissions": [
+    "https://generativelanguage.googleapis.com/*"
+  ],
+  
+  "background": {
+    "service_worker": "background.js"
+  },
+  
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["content.js"]
+    }
+  ],
+  
+  "action": {
+    "default_title": "即席翻訳を開く",
+    "default_icon": {
+      "16": "icons/icon16.png",
+      "48": "icons/icon48.png",
+      "128": "icons/icon128.png"
+    }
+  },
+  
+  "options_page": "options.html",
+  
+  "icons": {
+    "16": "icons/icon16.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  },
+  
+  "commands": {
+    "_execute_action": {
+      "suggested_key": {
+        "mac": "MacCtrl+A"
+      },
+      "description": "フローティングウィンドウの表示を切り替える"
+    }
+  }
+} 
