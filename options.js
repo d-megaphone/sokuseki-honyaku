@@ -7,6 +7,12 @@ document.addEventListener('DOMContentLoaded', () => {
         explain: `以下のテキストについて、専門用語を避け、誰にでも理解できるように解説してください。\n\nテキスト: {TEXT}`
     };
 
+    const DEFAULT_MODELS = {
+        translate: 'gemini-2.5-flash',
+        summarize: 'gemini-2.5-flash',
+        explain: 'gemini-2.5-flash'
+    };
+
     // --- DOM要素 ---
     const apiKeyInput = document.getElementById('apiKey');
     const modelSelect = document.getElementById('model');
@@ -18,6 +24,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const resetTranslateBtn = document.getElementById('reset-translate');
     const resetSummarizeBtn = document.getElementById('reset-summarize');
     const resetExplainBtn = document.getElementById('reset-explain');
+
+    // タブごとのモデル選択要素
+    const translateModelSelect = document.getElementById('model-translate');
+    const summarizeModelSelect = document.getElementById('model-summarize');
+    const explainModelSelect = document.getElementById('model-explain');
 
     // --- 関数 ---
 
@@ -36,6 +47,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const items = await chrome.storage.local.get({
                 apiKey: '',
                 model: 'gemini-2.5-flash',
+                tabModels: DEFAULT_MODELS,
                 translate: DEFAULT_PROMPTS.translate,
                 summarize: DEFAULT_PROMPTS.summarize,
                 explain: DEFAULT_PROMPTS.explain
@@ -48,6 +60,12 @@ document.addEventListener('DOMContentLoaded', () => {
             summarizeTextarea.value = items.summarize || DEFAULT_PROMPTS.summarize;
             explainTextarea.value = items.explain || DEFAULT_PROMPTS.explain;
 
+            // タブごとのモデル設定を読み込み
+            const tabModels = items.tabModels || DEFAULT_MODELS;
+            translateModelSelect.value = tabModels.translate || DEFAULT_MODELS.translate;
+            summarizeModelSelect.value = tabModels.summarize || DEFAULT_MODELS.summarize;
+            explainModelSelect.value = tabModels.explain || DEFAULT_MODELS.explain;
+
         } catch (error) {
             console.error('設定の読み込み中にエラーが発生しました:', error);
             showStatus('エラー: 設定を読み込めませんでした。', true);
@@ -59,6 +77,11 @@ document.addEventListener('DOMContentLoaded', () => {
         const settings = {
             apiKey: apiKeyInput.value,
             model: modelSelect.value,
+            tabModels: {
+                translate: translateModelSelect.value,
+                summarize: summarizeModelSelect.value,
+                explain: explainModelSelect.value
+            },
             translate: translateTextarea.value,
             summarize: summarizeTextarea.value,
             explain: explainTextarea.value

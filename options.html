@@ -24,6 +24,10 @@
         .label-with-btn { display: flex; justify-content: space-between; align-items: center; }
         .reset-btn { padding: 3px 8px; font-size: 11px; background-color: #6c757d; cursor: pointer; border: none; border-radius: 4px; color: white; font-weight: normal; }
         .reset-btn:hover { background-color: #5a6268; }
+        .tab-model-section { background-color: #f8f9fa; padding: 15px; border-radius: 8px; margin-bottom: 20px; }
+        .tab-model-item { margin-bottom: 15px; }
+        .tab-model-item:last-child { margin-bottom: 0; }
+        .tab-model-label { font-weight: 600; color: #495057; margin-bottom: 8px; }
     </style>
 </head>
 <body>
@@ -46,13 +50,46 @@
         </div>
         
         <div class="form-group">
-            <label for="model">使用モデル</label>
+            <label for="model">デフォルト使用モデル</label>
             <select id="model" class="form-control">
                 <option value="gemini-2.5-flash">Gemini 2.5 Flash（推奨・高速）</option>
                 <option value="gemini-2.5-pro">Gemini 2.5 Pro（高精度）</option>
                 <option value="gemini-1.5-flash">Gemini 1.5 Flash（従来モデル）</option>
                 <option value="gemini-1.5-pro">Gemini 1.5 Pro（従来モデル）</option>
             </select>
+        </div>
+
+        <h2>タブごとのモデル設定</h2>
+        <div class="tab-model-section">
+            <div class="tab-model-item">
+                <div class="tab-model-label">翻訳タブのモデル</div>
+                <select id="model-translate" class="form-control">
+                    <option value="gemini-2.5-flash">Gemini 2.5 Flash（推奨・高速）</option>
+                    <option value="gemini-2.5-pro">Gemini 2.5 Pro（高精度）</option>
+                    <option value="gemini-1.5-flash">Gemini 1.5 Flash（従来モデル）</option>
+                    <option value="gemini-1.5-pro">Gemini 1.5 Pro（従来モデル）</option>
+                </select>
+            </div>
+            
+            <div class="tab-model-item">
+                <div class="tab-model-label">要約タブのモデル</div>
+                <select id="model-summarize" class="form-control">
+                    <option value="gemini-2.5-flash">Gemini 2.5 Flash（推奨・高速）</option>
+                    <option value="gemini-2.5-pro">Gemini 2.5 Pro（高精度）</option>
+                    <option value="gemini-1.5-flash">Gemini 1.5 Flash（従来モデル）</option>
+                    <option value="gemini-1.5-pro">Gemini 1.5 Pro（従来モデル）</option>
+                </select>
+            </div>
+            
+            <div class="tab-model-item">
+                <div class="tab-model-label">解説タブのモデル</div>
+                <select id="model-explain" class="form-control">
+                    <option value="gemini-2.5-flash">Gemini 2.5 Flash（推奨・高速）</option>
+                    <option value="gemini-2.5-pro">Gemini 2.5 Pro（高精度）</option>
+                    <option value="gemini-1.5-flash">Gemini 1.5 Flash（従来モデル）</option>
+                    <option value="gemini-1.5-pro">Gemini 1.5 Pro（従来モデル）</option>
+                </select>
+            </div>
         </div>
         
         <h2>プロンプト設定</h2>

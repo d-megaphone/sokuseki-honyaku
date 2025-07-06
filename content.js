@@ -56,6 +56,12 @@ function createFloatWindow() {
             </div>
             <div class="actions">
                  <span id="status-indicator"></span>
+                 <select id="model-selector" class="model-selector" title="モデル選択">
+                     <option value="gemini-2.5-flash">Gemini 2.5 Flash</option>
+                     <option value="gemini-2.5-pro">Gemini 2.5 Pro</option>
+                     <option value="gemini-1.5-flash">Gemini 1.5 Flash</option>
+                     <option value="gemini-1.5-pro">Gemini 1.5 Pro</option>
+                 </select>
                  <button class="action-btn" id="copy-btn" title="コピー" disabled>コピー</button>
                  <button class="action-btn" id="settings-btn" title="設定">⚙️</button>
                  <button class="action-btn" id="close-btn" title="閉じる">×</button>
@@ -94,6 +100,9 @@ function createFloatWindow() {
     floatWindow.style.bottom = '20px';
     floatWindow.style.top = 'auto';
     floatWindow.style.left = 'auto';
+
+    // 初期モデル選択を設定
+    updateModelSelector('translate');
 }
 
 // フロートウィンドウのスタイルを取得
@@ -198,6 +207,28 @@ function getFloatWindowStyles() {
             font-size: 18px;
             line-height: 1.2;
         }
+        
+        .model-selector {
+            background-color: #f1f3f5;
+            border: 1px solid #dee2e6;
+            color: #495057;
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            white-space: nowrap;
+            min-width: 120px;
+        }
+        .model-selector:hover {
+            background-color: #e9ecef;
+        }
+        .model-selector:focus {
+            outline: none;
+            border-color: #007bff;
+            box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+        }
 
 
         .content-area {
@@ -255,6 +286,7 @@ function setupFloatWindowEventListeners() {
     const resizeHandle = floatWindow.querySelector('#resize-handle');
     const tabItems = floatWindow.querySelectorAll('.tab-item');
     const copyBtn = floatWindow.querySelector('#copy-btn');
+    const modelSelector = floatWindow.querySelector('#model-selector');
 
     header.addEventListener('mousedown', (e) => {
         if (e.target.closest('button')) return;
@@ -312,6 +344,24 @@ function setupFloatWindowEventListeners() {
             });
         }
     });
+
+    // モデル選択のイベントリスナー
+    modelSelector.addEventListener('change', async () => {
+        const activeTab = floatWindow.querySelector('.tab-item.active').dataset.tab;
+        const selectedModel = modelSelector.value;
+        
+        // 現在のタブのモデル設定を更新
+        const settings = await chrome.storage.local.get(['tabModels']);
+        const tabModels = settings.tabModels || {};
+        tabModels[activeTab] = selectedModel;
+        await chrome.storage.local.set({ tabModels });
+        
+        // キャッシュをクリアして再実行
+        if (lastSelectedText) {
+            delete apiCache[activeTab];
+            handleApiRequest(activeTab, lastSelectedText);
+        }
+    });
 }
 
 function stopDrag() {
@@ -330,7 +380,7 @@ function handleDrag(e) {
 }
 
 // タブ切り替えロジック
-function switchTab(tabName) {
+async function switchTab(tabName) {
     if (!floatWindow) return;
     
     // API呼び出し（キャッシュがなければ）
@@ -343,6 +393,9 @@ function switchTab(tabName) {
     floatWindow.querySelectorAll('.tab-content').forEach(content => {
         content.classList.toggle('active', content.id === `${tabName}-content`);
     });
+
+    // モデル選択を現在のタブに合わせて更新
+    await updateModelSelector(tabName);
 
     if (lastSelectedText && !apiCache[tabName]) {
         handleApiRequest(tabName, lastSelectedText);
@@ -358,16 +411,20 @@ async function handleApiRequest(type, text) {
     setProcessingState(true);
     updateFloatWindowContent(type, ''); // 表示をクリア
 
-    const settings = await chrome.storage.local.get(['apiKey', 'model']);
+    const settings = await chrome.storage.local.get(['apiKey', 'model', 'tabModels']);
     if (!settings.apiKey) {
         updateFloatWindowContent(type, 'APIキーが設定されていません', true);
         setProcessingState(false, 'error');
         return;
     }
 
+    // タブごとのモデル設定を取得（なければデフォルト）
+    const tabModels = settings.tabModels || {};
+    const model = tabModels[type] || settings.model || 'gemini-2.5-flash';
+
     try {
         const response = await chrome.runtime.sendMessage({
-            type: type, text: text, apiKey: settings.apiKey, model: settings.model || 'gemini-2.5-flash'
+            type: type, text: text, apiKey: settings.apiKey, model: model
         });
         if (response.success) {
             apiCache[type] = response.result;
@@ -396,6 +453,27 @@ function updateFloatWindowContent(type, text, isError = false) {
     }
 
     floatWindow.querySelector('#copy-btn').disabled = isError || !text;
+}
+
+// モデル選択を更新する関数
+async function updateModelSelector(tabName) {
+    if (!floatWindow) return;
+    
+    const modelSelector = floatWindow.querySelector('#model-selector');
+    if (!modelSelector) return;
+    
+    try {
+        const settings = await chrome.storage.local.get(['tabModels', 'model']);
+        const tabModels = settings.tabModels || {};
+        const defaultModel = settings.model || 'gemini-2.5-flash';
+        
+        // 現在のタブのモデル設定を取得（なければデフォルト）
+        const currentModel = tabModels[tabName] || defaultModel;
+        modelSelector.value = currentModel;
+    } catch (error) {
+        console.error('モデル設定の取得に失敗しました:', error);
+        modelSelector.value = 'gemini-2.5-flash';
+    }
 }
 
 // 処理中状態の設定
