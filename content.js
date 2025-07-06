@@ -18,6 +18,42 @@ function getSelectedText() {
     return text;
 }
 
+// ページ全体のテキストを取得する関数
+function getPageText() {
+    // 不要な要素を除外
+    const excludeSelectors = [
+        'script', 'style', 'noscript', 'iframe', 'object', 'embed',
+        'nav', 'header', 'footer', 'aside', '.ad', '.advertisement',
+        '.sidebar', '.menu', '.navigation', '.footer', '.header'
+    ];
+    
+    // 除外する要素を非表示にする
+    const excludedElements = [];
+    excludeSelectors.forEach(selector => {
+        const elements = document.querySelectorAll(selector);
+        elements.forEach(el => {
+            if (el.style.display !== 'none') {
+                excludedElements.push(el);
+                el.style.display = 'none';
+            }
+        });
+    });
+    
+    // ページ全体のテキストを取得
+    const pageText = document.body.innerText || document.body.textContent || '';
+    
+    // 除外した要素を元に戻す
+    excludedElements.forEach(el => {
+        el.style.display = '';
+    });
+    
+    // テキストをクリーンアップ
+    return pageText
+        .replace(/\s+/g, ' ')  // 連続する空白を単一の空白に
+        .replace(/\n\s*\n/g, '\n')  // 連続する改行を単一の改行に
+        .trim();
+}
+
 // 選択変更イベントの監視
 document.addEventListener('mouseup', () => {
     if (isWindowInteraction) {
@@ -405,6 +441,27 @@ async function switchTab(tabName) {
     }
 }
 
+// プロンプトテンプレートを処理する関数
+function processPromptTemplate(template, selectedText) {
+    let processedText = selectedText;
+    let processedTemplate = template;
+    
+    // {PAGE}キーワードが含まれている場合
+    if (template.includes('{PAGE}')) {
+        const pageText = getPageText();
+        processedTemplate = template.replace(/{PAGE}/g, pageText);
+        // 選択テキストが空の場合は、ページ全体のテキストを使用
+        if (!selectedText) {
+            processedText = pageText;
+        }
+    }
+    
+    // {TEXT}を選択テキストで置換
+    processedTemplate = processedTemplate.replace(/{TEXT}/g, processedText);
+    
+    return processedTemplate;
+}
+
 // APIリクエストのハンドリング
 async function handleApiRequest(type, text) {
     if (!text) return;
@@ -412,7 +469,7 @@ async function handleApiRequest(type, text) {
     setProcessingState(true);
     updateFloatWindowContent(type, ''); // 表示をクリア
 
-    const settings = await chrome.storage.local.get(['apiKey', 'model', 'tabModels']);
+    const settings = await chrome.storage.local.get(['apiKey', 'model', 'tabModels', 'translate', 'summarize', 'explain']);
     if (!settings.apiKey) {
         updateFloatWindowContent(type, 'APIキーが設定されていません', true);
         setProcessingState(false, 'error');
@@ -423,9 +480,19 @@ async function handleApiRequest(type, text) {
     const tabModels = settings.tabModels || {};
     const model = tabModels[type] || settings.model || 'gemini-2.5-flash';
 
+    // プロンプトテンプレートを取得
+    const promptTemplate = settings[type] || '';
+    
     try {
+        // プロンプトテンプレートを処理
+        const processedPrompt = processPromptTemplate(promptTemplate, text);
+        
         const response = await chrome.runtime.sendMessage({
-            type: type, text: text, apiKey: settings.apiKey, model: model
+            type: type, 
+            text: text, 
+            prompt: processedPrompt,
+            apiKey: settings.apiKey, 
+            model: model
         });
         if (response.success) {
             apiCache[type] = response.result;

@@ -112,13 +112,19 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 
 // 翻訳処理
 async function handleTranslation(message, sendResponse) {
-    const { text, apiKey, model } = message;
+    const { text, apiKey, model, prompt } = message;
     
     try {
-        const { translate: promptTemplate } = await chrome.storage.local.get({ translate: DEFAULT_PROMPTS.translate });
-        const prompt = promptTemplate.replace('{TEXT}', text);
+        // プロンプトが直接渡されている場合はそれを使用、そうでなければテンプレートから生成
+        let finalPrompt;
+        if (prompt) {
+            finalPrompt = prompt;
+        } else {
+            const { translate: promptTemplate } = await chrome.storage.local.get({ translate: DEFAULT_PROMPTS.translate });
+            finalPrompt = promptTemplate.replace('{TEXT}', text);
+        }
 
-        const result = await callGeminiAPI(prompt, apiKey, model);
+        const result = await callGeminiAPI(finalPrompt, apiKey, model);
         sendResponse({ success: true, result: result });
         
     } catch (error) {
@@ -129,13 +135,19 @@ async function handleTranslation(message, sendResponse) {
 
 // 要約処理
 async function handleSummarization(message, sendResponse) {
-    const { text, apiKey, model } = message;
+    const { text, apiKey, model, prompt } = message;
     
     try {
-        const { summarize: promptTemplate } = await chrome.storage.local.get({ summarize: DEFAULT_PROMPTS.summarize });
-        const prompt = promptTemplate.replace('{TEXT}', text);
+        // プロンプトが直接渡されている場合はそれを使用、そうでなければテンプレートから生成
+        let finalPrompt;
+        if (prompt) {
+            finalPrompt = prompt;
+        } else {
+            const { summarize: promptTemplate } = await chrome.storage.local.get({ summarize: DEFAULT_PROMPTS.summarize });
+            finalPrompt = promptTemplate.replace('{TEXT}', text);
+        }
 
-        const result = await callGeminiAPI(prompt, apiKey, model);
+        const result = await callGeminiAPI(finalPrompt, apiKey, model);
         sendResponse({ success: true, result: result });
         
     } catch (error) {
@@ -146,13 +158,19 @@ async function handleSummarization(message, sendResponse) {
 
 // 初学者向け解説処理
 async function handleExplanation(message, sendResponse) {
-    const { text, apiKey, model } = message;
+    const { text, apiKey, model, prompt } = message;
     
     try {
-        const { explain: promptTemplate } = await chrome.storage.local.get({ explain: DEFAULT_PROMPTS.explain });
-        const prompt = promptTemplate.replace('{TEXT}', text);
+        // プロンプトが直接渡されている場合はそれを使用、そうでなければテンプレートから生成
+        let finalPrompt;
+        if (prompt) {
+            finalPrompt = prompt;
+        } else {
+            const { explain: promptTemplate } = await chrome.storage.local.get({ explain: DEFAULT_PROMPTS.explain });
+            finalPrompt = promptTemplate.replace('{TEXT}', text);
+        }
 
-        const result = await callGeminiAPI(prompt, apiKey, model);
+        const result = await callGeminiAPI(finalPrompt, apiKey, model);
         sendResponse({ success: true, result: result });
         
     } catch (error) {
