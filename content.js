@@ -59,7 +59,7 @@ function createFloatWindow() {
                  <select id="model-selector" class="model-selector" title="モデル選択">
                      <option value="gemini-2.5-flash">Gemini 2.5 Flash</option>
                      <option value="gemini-2.5-pro">Gemini 2.5 Pro</option>
-                     <option value="gemini-2.5-flash-lite-preview">Gemini 2.5 Flash-Lite</option>
+                     <option value="gemini-2.5-flash-lite-preview-06-17">Gemini 2.5 Flash-Lite</option>
                      <option value="gemini-2.0-flash">Gemini 2.0 Flash</option>
                      <option value="gemini-1.5-flash">Gemini 1.5 Flash</option>
                  </select>
